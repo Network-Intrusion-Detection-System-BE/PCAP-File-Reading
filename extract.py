@@ -5,8 +5,6 @@ capture = pyshark.FileCapture('pcap2.pcapng')
 
 n = 0
 for packet in capture:
-    # print(packet)
-    # print("\n")
     try:
         total_udp_packets = 0
         total_tcp_packets = 0
@@ -111,6 +109,7 @@ for packet in capture:
         else:
             src_bytes = 0
             dst_bytes = 0
+
     # 7. Land Attack: Unfortunately, there isn't a straightforward method to directly retrieve a "land" attribute 
     #    value from packets in standard packet analysis tools like Wireshark or pyshark. 
         land = "NF"
@@ -204,32 +203,56 @@ for packet in capture:
             serror_rate = 0
 
 ####    # 26. Server error rate, which is the rate of packets with the 'S1' (SYN error) flag set among the packets sent to a particular service or server
-        srv_serror_tcp_packets = 0
-        srv_serror_icmp_packets = 0
-        def calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, srv_serror_tcp_packets, srv_serror_icmp_packets):
+        # srv_serror_tcp_packets = 0
+        # srv_serror_icmp_packets = 0
+        # def calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, srv_serror_tcp_packets, srv_serror_icmp_packets):
+        #     if hasattr(packet, 'transport_layer'):
+        #         if packet.transport_layer == 'TCP':
+        #             if hasattr(packet.tcp, 'flags') and 'S1' in packet.tcp.flags:
+        #                 srv_serror_tcp_packets += 1
+        #         elif packet.transport_layer == 'ICMP':
+        #             if hasattr(packet.icmp, 'type') and packet.icmp.type == '3' and hasattr(packet.icmp, 'code') and packet.icmp.code == '1':
+        #                 srv_serror_icmp_packets += 1
+        #     srv_serror_rate_tcp = (srv_serror_tcp_packets / total_tcp_packets)  if total_tcp_packets > 0 else 0
+        #     srv_serror_rate_icmp = (srv_serror_icmp_packets / total_icmp_packets)  if total_icmp_packets > 0 else 0
+        #     return srv_serror_rate_tcp, srv_serror_rate_icmp
+        
+        # srv_serror_rate_tcp, srv_serror_rate_icmp = calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, 
+        #                 srv_serror_tcp_packets, srv_serror_icmp_packets)
+
+        # if 'TCP' in packet:
+        #     srv_serror_rate = srv_serror_rate_tcp
+        # elif 'IP' in packet:
+        #     srv_serror_rate = srv_serror_rate_icmp
+        # else:
+        #     srv_serror_rate = 0
+        srv_serror_rate = "NF"
+
+####    # 27. Rate of packets that have the 'R' (reset) flag set in TCP packets among all packets
+        rerror_tcp_packets = 0
+        rerror_icmp_packets = 0
+        def calculate_rerror_rate(total_tcp_packets, total_icmp_packets, rerror_tcp_packets, rerror_icmp_packets):
             if hasattr(packet, 'transport_layer'):
                 if packet.transport_layer == 'TCP':
-                    if hasattr(packet.tcp, 'flags') and 'S1' in packet.tcp.flags:
-                        srv_serror_tcp_packets += 1
+                    if hasattr(packet.tcp, 'flags') and 'R' in packet.tcp.flags:
+                        rerror_tcp_packets += 1
                 elif packet.transport_layer == 'ICMP':
-                    if hasattr(packet.icmp, 'type') and packet.icmp.type == '3' and hasattr(packet.icmp, 'code') and packet.icmp.code == '1':
-                        srv_serror_icmp_packets += 1
-            srv_serror_rate_tcp = (srv_serror_tcp_packets / total_tcp_packets)  if total_tcp_packets > 0 else 0
-            srv_serror_rate_icmp = (srv_serror_icmp_packets / total_icmp_packets)  if total_icmp_packets > 0 else 0
-            return srv_serror_rate_tcp, srv_serror_rate_icmp
+                    if hasattr(packet.icmp, 'type') and packet.icmp.type == '3' and hasattr(packet.icmp, 'code') and packet.icmp.code == '3':
+                        rerror_icmp_packets += 1
+
+            rerror_rate_tcp = (rerror_tcp_packets / total_tcp_packets) * 100 if total_tcp_packets > 0 else 0
+            rerror_rate_icmp = (rerror_icmp_packets / total_icmp_packets) * 100 if total_icmp_packets > 0 else 0
+
+            return rerror_rate_tcp, rerror_rate_icmp
         
-        srv_serror_rate_tcp, srv_serror_rate_icmp = calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, 
-                        srv_serror_tcp_packets, srv_serror_icmp_packets)
+        rerror_rate_tcp, rerror_rate_icmp = calculate_rerror_rate(total_tcp_packets, total_icmp_packets, rerror_tcp_packets, rerror_icmp_packets)
 
         if 'TCP' in packet:
-            srv_serror_rate = srv_serror_rate_tcp
+            rerror_rate = rerror_rate_tcp
         elif 'IP' in packet:
-            srv_serror_rate = srv_serror_rate_icmp
+            rerror_rate = rerror_rate_icmp
         else:
-            serror_rate = 0
-    
-####    # 27. Rate of packets that have the 'R' (reset) flag set in TCP packets among all packets sent to a specific service or server
-        rerror_rate = packet.transport_layer
+            rerror_rate = 0
     
 ####    # 28. Rate of packets with the 'R' (reset) flag set among the packets sent to a specific service or server
         srv_rerror_rate = packet.transport_layer
