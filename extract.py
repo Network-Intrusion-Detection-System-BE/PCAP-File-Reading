@@ -253,48 +253,48 @@ for packet in capture:
             rerror_rate = rerror_rate_icmp
         else:
             rerror_rate = 0
-    
+
 ####    # 28. Rate of packets with the 'R' (reset) flag set among the packets sent to a specific service or server
-        srv_rerror_rate = packet.transport_layer
+        srv_rerror_rate = "NF"
 
 ####    # 29. Percentage of connections to the same service among the total number of connections observed
-        same_srv_rate = packet.transport_layer
+        same_srv_rate = "NF"
 
 ####    # 30. Percentage of connections to different services among the total number of connections observed
-        diff_srv_rate = packet.transport_layer
-    
+        diff_srv_rate = "NF"
+
 ####    # 31. Percentage of connections to different hosts among the connections to the same service
-        srv_diff_host_rate = packet.transport_layer
+        srv_diff_host_rate = "NF" 
 
 ####    # 32. Number of unique destination hosts (IP addresses) contacted by the source host
-        dst_host_count = packet.transport_layer
+        dst_host_count = "NF"
 
 ####   # 33. Number of unique services offered by the destination hosts contacted by the source host
-        dst_host_srv_count = packet.transport_layer
+        dst_host_srv_count = "NF"
 
 ####    # 34. Percentage of connections to the same service among the connections to a particular destination host
-        dst_host_same_srv_rate = packet.transport_layer
+        dst_host_same_srv_rate = "NF"
 
 ####    # 35. Percentage of connections to different services among the connections to a particular destination host
-        dst_host_diff_srv_rate = packet.transport_layer
+        dst_host_diff_srv_rate = "NF"
     
     # 36. Percentage of connections from the same source port among the connections to a particular destination host
-        dst_host_same_src_port_rate = packet.transport_layer
+        dst_host_same_src_port_rate = "NF"
 
     # 37. Percentage of connections to different hosts among the connections to the same service on a destination host
-        dst_host_srv_diff_host_rate = packet.transport_layer
+        dst_host_srv_diff_host_rate = "NF"
     
 ####    # 38. Rate of packets with TCP 'SYN' errors (e.g., 'S1' flag set) among the packets sent to a particular destination host
-        dst_host_serror_rate = packet.transport_layer
+        dst_host_serror_rate = "NF"
     
 ####    # 39. Calculated specifically for connections to a particular service on the destination host
-        dst_host_srv_serror_rate = packet.transport_layer
+        dst_host_srv_serror_rate = "NF"
     
 ####    # 40. Rate of packets with TCP 'reset' errors (e.g., 'R' flag set) among the packets sent to a particular destination host
-        dst_host_rerror_rate = packet.transport_layer
+        dst_host_rerror_rate = "NF"
     
 ####    # 41. Calculated specifically for connections to a particular service on the destination host
-        dst_host_srv_rerror_rate = packet.transport_layer
+        dst_host_srv_rerror_rate = "NF"
 
         if(protocol_type=='icmp' or protocol_type=='tcp' or protocol_type=='udp'):
         # if(protocol_type=='icmp'):
