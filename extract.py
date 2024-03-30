@@ -1,5 +1,11 @@
 import pyshark
 import random
+import pickle
+import warnings
+import joblib
+from sklearn.exceptions import InconsistentVersionWarning
+warnings.simplefilter("error", InconsistentVersionWarning)
+
 
 capture = pyshark.FileCapture('pcap2.pcapng')
 
@@ -21,6 +27,7 @@ for packet in capture:
         duration = float(packet.frame_info.time_delta_displayed) * 10**6
         
 ####    # 2. Protocol Type
+        protocol_type_encoding = {'icmp': 0, 'tcp': 1, 'udp': 2, 'oth': -1}
         protocolTypeValue = packet.frame_info.protocols
         
         if 'icmp' in protocolTypeValue:
@@ -31,6 +38,7 @@ for packet in capture:
             protocol_type = 'udp'
         else:
             protocol_type = 'oth'
+        protocol_type = protocol_type_encoding[protocol_type]
 
 ####    # 3. Service
         if 'TCP' in packet:
@@ -56,6 +64,16 @@ for packet in capture:
         service = serviceType
         if service == 'None':
             service = random.choice(['private', 'domain_u', 'other'])
+        service_encoding = {'IRC': 0, 'X11': 1, 'Z39_50': 2, 'aol': 3, 'auth': 4,
+            'bgp': 5, 'courier': 6, 'csnet_ns': 7, 'ctf': 8, 'daytime': 9, 'discard': 10, 'domain': 11, 'domain_u': 12,
+            'echo': 13, 'eco_i': 14, 'ecr_i': 15, 'efs': 16, 'exec': 17, 'finger': 18, 'ftp': 19, 'ftp_data': 20,
+            'gopher': 21, 'harvest': 22, 'hostnames': 23, 'http': 24, 'http_2784': 25, 'http_443': 26, 'http_8001': 27, 'imap4': 28,
+            'iso_tsap': 29, 'klogin': 30, 'kshell': 31, 'ldap': 32, 'link': 33, 'login': 34, 'mtp': 35, 'name': 36,
+            'netbios_dgm': 37, 'netbios_ns': 38, 'netbios_ssn': 39, 'netstat': 40, 'nnsp': 41, 'nntp': 42, 'ntp_u': 43, 'other': 44,
+            'pm_dump': 45, 'pop_2': 46, 'pop_3': 47, 'printer': 48, 'private': 49, 'red_i': 50, 'remote_job': 51, 'rje': 52,
+            'shell': 53, 'smtp': 54, 'sql_net': 55, 'ssh': 56, 'sunrpc': 57, 'supdup': 58, 'systat': 59, 'telnet': 60,
+            'tftp_u': 61, 'tim_i': 62, 'time': 63, 'urh_i': 64, 'urp_i': 65, 'uucp': 66, 'uucp_path': 67, 'vmnet': 68, 'whois': 69}
+        service = service_encoding[service]
 
 ####    # 4. Flags
         # OTH (Other): 0x00 (No flags set)
@@ -95,6 +113,9 @@ for packet in capture:
             flag = 'SF'
         else:
             flag = 'OTH'
+
+        flag_encoding = {'OTH': 0, 'REJ': 1, 'RSTO': 2, 'RSTOS0': 3, 'RSTR': 4, 'S0': 5, 'S1': 6, 'S2': 7, 'S3': 8, 'SF': 9, 'SH': 10}
+        flag = flag_encoding[flag]
 
      # 5 & 6. Source and Destination Lengths
         if 'TCP' in packet:
@@ -203,29 +224,6 @@ for packet in capture:
             serror_rate = 0
 
 ####    # 26. Server error rate, which is the rate of packets with the 'S1' (SYN error) flag set among the packets sent to a particular service or server
-        # srv_serror_tcp_packets = 0
-        # srv_serror_icmp_packets = 0
-        # def calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, srv_serror_tcp_packets, srv_serror_icmp_packets):
-        #     if hasattr(packet, 'transport_layer'):
-        #         if packet.transport_layer == 'TCP':
-        #             if hasattr(packet.tcp, 'flags') and 'S1' in packet.tcp.flags:
-        #                 srv_serror_tcp_packets += 1
-        #         elif packet.transport_layer == 'ICMP':
-        #             if hasattr(packet.icmp, 'type') and packet.icmp.type == '3' and hasattr(packet.icmp, 'code') and packet.icmp.code == '1':
-        #                 srv_serror_icmp_packets += 1
-        #     srv_serror_rate_tcp = (srv_serror_tcp_packets / total_tcp_packets)  if total_tcp_packets > 0 else 0
-        #     srv_serror_rate_icmp = (srv_serror_icmp_packets / total_icmp_packets)  if total_icmp_packets > 0 else 0
-        #     return srv_serror_rate_tcp, srv_serror_rate_icmp
-        
-        # srv_serror_rate_tcp, srv_serror_rate_icmp = calculate_srv_serror_rate(total_tcp_packets, total_icmp_packets, 
-        #                 srv_serror_tcp_packets, srv_serror_icmp_packets)
-
-        # if 'TCP' in packet:
-        #     srv_serror_rate = srv_serror_rate_tcp
-        # elif 'IP' in packet:
-        #     srv_serror_rate = srv_serror_rate_icmp
-        # else:
-        #     srv_serror_rate = 0
         srv_serror_rate = "NF"
 
 ####    # 27. Rate of packets that have the 'R' (reset) flag set in TCP packets among all packets
@@ -296,17 +294,17 @@ for packet in capture:
 ####    # 41. Calculated specifically for connections to a particular service on the destination host
         dst_host_srv_rerror_rate = "NF"
 
-        if(protocol_type=='icmp' or protocol_type=='tcp' or protocol_type=='udp'):
-        # if(protocol_type=='icmp'):
-        # if(protocol_type=='tcp'):
-        # if(protocol_type=='udp'):
+        if(protocol_type!=-1):
             print(duration, protocol_type, service, flag, src_bytes, dst_bytes, land, wrong_fragment, urgent, hot, num_failed_logins, logged_in, num_compromised, root_shell, su_attempted, num_root, num_file_creations, num_shells, num_access_files, num_outbound_cmds, is_host_login, is_guest_login, count, srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, dst_host_rerror_rate, dst_host_srv_rerror_rate, "\n")
+            # with open('model.pkl', 'rb') as f:
+            #     try:
+            #         model = pickle.load(f)
+            #         attack_type = model.predict([duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate])
+            #         print("Attack Type: ", attack_type)
+            #     except:
+            #         print("Pickle Error")
+            model = joblib.load('model.joblib')
+            attack_type = model.predict([duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate])
+            print("Attack Type: ", attack_type)
     except AttributeError as e:
         pass
-    if(n==20):
-        break
-    if(protocol_type=='icmp' or protocol_type=='tcp' or protocol_type=='udp'):
-    # if(protocol_type=='icmp'):
-    # if(protocol_type=='tcp'):
-    # if(protocol_type=='udp'):
-        n += 1
