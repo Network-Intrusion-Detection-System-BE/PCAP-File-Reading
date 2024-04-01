@@ -1,6 +1,3 @@
-            total_udp_packets = 0
-            total_tcp_packets = 0
-            total_icmp_packets = 0
-            syn_error_udp_packets = 0
-            syn_error_tcp_packets = 0
-            syn_error_icmp_packets = 0
+            # model = joblib.load('model2.joblib')
+            # attack_type = model.predict([[duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate]])
+            # print("Attack Type: ", attack_encoding[attack_type])

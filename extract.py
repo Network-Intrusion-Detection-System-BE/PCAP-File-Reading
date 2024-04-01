@@ -1,13 +1,28 @@
 import pyshark
 import random
 import pickle
+import sklearn
 import warnings
 import joblib
-from sklearn.exceptions import InconsistentVersionWarning
-warnings.simplefilter("error", InconsistentVersionWarning)
+warnings.filterwarnings("ignore")
+# from memory_profiler import profile
+# import pandas as pd
+# from sklearn.ensemble import RandomForestClassifier
+
+# rfc = RandomForestClassifier()
+
+# @profile
+# def trainModel():
+#     X = pd.read_csv('X.csv')
+#     y = pd.read_csv('y.csv')
+#     rfc.fit(X, y)
+# trainModel()
+
+# print(sklearn.__version__)
+# print(joblib.__version__)
 
 
-capture = pyshark.FileCapture('pcap2.pcapng')
+capture = pyshark.FileCapture('packet-captures-main\pkt.TCP.synflood.spoofed.pcap')
 
 n = 0
 for packet in capture:
@@ -69,7 +84,8 @@ for packet in capture:
             'echo': 13, 'eco_i': 14, 'ecr_i': 15, 'efs': 16, 'exec': 17, 'finger': 18, 'ftp': 19, 'ftp_data': 20,
             'gopher': 21, 'harvest': 22, 'hostnames': 23, 'http': 24, 'http_2784': 25, 'http_443': 26, 'http_8001': 27, 'imap4': 28,
             'iso_tsap': 29, 'klogin': 30, 'kshell': 31, 'ldap': 32, 'link': 33, 'login': 34, 'mtp': 35, 'name': 36,
-            'netbios_dgm': 37, 'netbios_ns': 38, 'netbios_ssn': 39, 'netstat': 40, 'nnsp': 41, 'nntp': 42, 'ntp_u': 43, 'other': 44,
+            'netbios_dgm': 37, 'netbios_ns'
+                            : 38, 'netbios_ssn': 39, 'netstat': 40, 'nnsp': 41, 'nntp': 42, 'ntp_u': 43, 'other': 44,
             'pm_dump': 45, 'pop_2': 46, 'pop_3': 47, 'printer': 48, 'private': 49, 'red_i': 50, 'remote_job': 51, 'rje': 52,
             'shell': 53, 'smtp': 54, 'sql_net': 55, 'ssh': 56, 'sunrpc': 57, 'supdup': 58, 'systat': 59, 'telnet': 60,
             'tftp_u': 61, 'tim_i': 62, 'time': 63, 'urh_i': 64, 'urp_i': 65, 'uucp': 66, 'uucp_path': 67, 'vmnet': 68, 'whois': 69}
@@ -294,17 +310,26 @@ for packet in capture:
 ####    # 41. Calculated specifically for connections to a particular service on the destination host
         dst_host_srv_rerror_rate = "NF"
 
+        attack_encoding = {'DoS': 0, 'Probe': 1, 'R2L': 2, 'U2R': 3, 'normal': 4}
+
         if(protocol_type!=-1):
-            print(duration, protocol_type, service, flag, src_bytes, dst_bytes, land, wrong_fragment, urgent, hot, num_failed_logins, logged_in, num_compromised, root_shell, su_attempted, num_root, num_file_creations, num_shells, num_access_files, num_outbound_cmds, is_host_login, is_guest_login, count, srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, dst_host_rerror_rate, dst_host_srv_rerror_rate, "\n")
+            # print(duration, protocol_type, service, flag, src_bytes, dst_bytes, land, wrong_fragment, urgent, hot, num_failed_logins, logged_in, num_compromised, root_shell, su_attempted, num_root, num_file_creations, num_shells, num_access_files, num_outbound_cmds, is_host_login, is_guest_login, count, srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, dst_host_rerror_rate, dst_host_srv_rerror_rate, "\n")
+            print('[', duration,',', protocol_type,',', service, ',', flag, ',', src_bytes, ',', dst_bytes, ',', urgent,
+                   ',', num_failed_logins, ',', serror_rate, ',', rerror_rate,']')
+            n += 1
+            # pred = rfc.predict([[duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate]])
+            # print(pred[0], "\n")
             # with open('model.pkl', 'rb') as f:
-            #     try:
-            #         model = pickle.load(f)
-            #         attack_type = model.predict([duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate])
-            #         print("Attack Type: ", attack_type)
-            #     except:
-            #         print("Pickle Error")
+                # try:
+                # model = pickle.load(f)
+                # attack_type = model.predict([[duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate]])
+                # print("Attack Type: ", attack_encoding[attack_type])
+                # except:
+                #     print("Pickle Error")
             model = joblib.load('model.joblib')
-            attack_type = model.predict([duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate])
-            print("Attack Type: ", attack_type)
+            attack_type = model.predict([[duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate]])
+            print("Attack Type: ", attack_encoding[attack_type])
+            if(n==20):
+                break
     except AttributeError as e:
         pass
