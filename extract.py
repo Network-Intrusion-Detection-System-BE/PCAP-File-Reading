@@ -4,6 +4,7 @@ import pickle
 import sklearn
 import warnings
 import joblib
+from numpy import array
 warnings.filterwarnings("ignore")
 # from memory_profiler import profile
 # import pandas as pd
@@ -22,7 +23,7 @@ warnings.filterwarnings("ignore")
 # print(joblib.__version__)
 
 
-capture = pyshark.FileCapture('packet-captures-main\pkt.TCP.synflood.spoofed.pcap')
+capture = pyshark.FileCapture('packet-captures-main\\amp.TCP.syn.optionallyACK.optionallysamePort.pcapng')
 
 n = 0
 for packet in capture:
@@ -310,8 +311,8 @@ for packet in capture:
 ####    # 41. Calculated specifically for connections to a particular service on the destination host
         dst_host_srv_rerror_rate = "NF"
 
-        attack_encoding = {'DoS': 0, 'Probe': 1, 'R2L': 2, 'U2R': 3, 'normal': 4}
-
+        attack_encoding = {0: 'DoS', 1: 'Probe', 2: 'R2L', 3: 'U2R', 4: 'normal'}
+        
         if(protocol_type!=-1):
             # print(duration, protocol_type, service, flag, src_bytes, dst_bytes, land, wrong_fragment, urgent, hot, num_failed_logins, logged_in, num_compromised, root_shell, su_attempted, num_root, num_file_creations, num_shells, num_access_files, num_outbound_cmds, is_host_login, is_guest_login, count, srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, dst_host_rerror_rate, dst_host_srv_rerror_rate, "\n")
             print('[', duration,',', protocol_type,',', service, ',', flag, ',', src_bytes, ',', dst_bytes, ',', urgent,
@@ -328,7 +329,7 @@ for packet in capture:
                 #     print("Pickle Error")
             model = joblib.load('model.joblib')
             attack_type = model.predict([[duration, protocol_type, service, flag, src_bytes, dst_bytes, urgent, num_failed_logins, serror_rate, rerror_rate]])
-            print("Attack Type: ", attack_encoding[attack_type])
+            print("Attack Type: ", attack_encoding[attack_type[0]])
             if(n==20):
                 break
     except AttributeError as e:
